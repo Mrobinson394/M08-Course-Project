@@ -1,0 +1,116 @@
+PayrollSystem/
+├── src/
+│   ├── model/
+│   │   ├── User.java
+│   ├── security/
+│   │   ├── SecurityUtils.java
+│   ├── ui/
+│   │   ├── LoginScreen.java
+│   └── PayrollApp.java
+├── lib/
+│   └── commons-codec-1.15.jar
+└── README.md
+package model;
+
+public class User {
+    private String userId;
+    private String passwordHash;
+    private String userType; // "Admin" or "Employee"
+
+    public User(String userId, String passwordHash, String userType) {
+        this.userId = userId;
+        this.passwordHash = passwordHash;
+        this.userType = userType;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+}
+package security;
+
+import org.apache.commons.codec.digest.DigestUtils;
+
+public class SecurityUtils {
+    public static String hashPassword(String password) {
+        return DigestUtils.md5Hex(password);
+    }
+}
+package ui;
+
+import model.User;
+import security.SecurityUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class LoginScreen {
+
+    private static Map<String, User> users = new HashMap<>();
+
+    // Sample users (admin and employee)
+    static {
+        // Admin ID: HR0001 / Password: Admin123
+        users.put("HR0001", new User("HR0001", SecurityUtils.hashPassword("Admin123"), "Admin"));
+
+        // Employee ID: EMP1001 / Password: Emp1234
+        users.put("EMP1001", new User("EMP1001", SecurityUtils.hashPassword("Emp1234"), "Employee"));
+    }
+
+    public static void displayLogin() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("===== ABC Payroll System Login =====");
+        System.out.print("Enter User ID: ");
+        String userId = scanner.nextLine();
+
+        System.out.print("Enter Password: ");
+        String password = scanner.nextLine();
+
+        User user = users.get(userId);
+        if (user != null && user.getPasswordHash().equals(SecurityUtils.hashPassword(password))) {
+            System.out.println("\nLogin successful! Welcome, " + user.getUserType());
+            if (user.getUserType().equals("Admin")) {
+                displayAdminMenu();
+            } else {
+                displayEmployeeMenu();
+            }
+        } else {
+            System.out.println("\nInvalid credentials. Access denied.");
+        }
+    }
+
+    private static void displayAdminMenu() {
+        System.out.println("----- Admin Menu -----");
+        System.out.println("1. Manage Employee Records");
+        System.out.println("2. Calculate Payroll");
+        System.out.println("3. Generate Reports");
+        System.out.println("4. Exit");
+    }
+
+    private static void displayEmployeeMenu() {
+        System.out.println("----- Employee Menu -----");
+        System.out.println("1. Enter Work Hours");
+        System.out.println("2. Request PTO");
+        System.out.println("3. View Paycheck");
+        System.out.println("4. Exit");
+    }
+}
+import ui.LoginScreen;
+
+public class PayrollApp {
+    public static void main(String[] args) {
+        LoginScreen.displayLogin();
+    }
+}
+javac -cp ".;lib/commons-codec-1.15.jar" src/**/*.java
+java -cp ".;lib/commons-codec-1.15.jar;src" PayrollApp
